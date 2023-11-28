@@ -27,18 +27,20 @@ app.get('/', (req, res) => {
 })
 
 app.post('/', async (req, res) => {
-    const message = req.body;
+  try {
+    const { messages, model } = req.body;
 
     const completion = await openai.chat.completions.create({
-        messages: [{ role: "user", content: message }],
-        model: "gpt-3.5-turbo",
+        messages: messages,
+        model: model,
     });
     
-    console.log(completion.choices[0]);
-    res.json({
-        completion: completion.data.choices[0].message
-    });
-    res.send('GET request to the openai APIs');
+    res.json({ response: completion.choices[0].message.content });
+    console.log(completion.choices[0].message.content);
+} catch (error) {
+    console.error('Errore nel backend:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+}
 });
 
 app.listen(PORT, () => {

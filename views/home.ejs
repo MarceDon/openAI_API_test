@@ -36,20 +36,35 @@
                      'Content-Type': 'application/json'
                  },
                  body: JSON.stringify({
-                     message: messageText
-                 })
+                    messages: [{ role: "system", content: messageText }],
+                    model: "gpt-3.5-turbo",
+                })
              })
-             .then(res => res.json())
-             .then(data => {
-                 const messageElement = document.createElement('div')
-                 messageElement.classList.add('message')
-                 messageElement.classList.add('message--sent')
-                 messageElement.innerHTML = `
-                     <div class="message--text">${data.completion.content}</div>
-                 `
-                 chatLog.appendChild(messageElement)
-                 chatLog.scrollTop = chatLog.scrollHeight
-             })
+             .then(res => {
+                if (!res.ok) {
+                    throw new Error(`Errore nella richiesta API: ${res.status} - ${res.statusText}`);
+                }
+                return res.json();
+            })
+            .then(data => {
+                console.log('Data received:', data);
+
+                if (data && data.response) {
+                    const messageElement = document.createElement('div');
+                    messageElement.classList.add('message');
+                    messageElement.classList.add('message--received');
+                    messageElement.innerHTML = `
+                        <div class="message--text">${data.response}</div>
+                    `;
+                    chatLog.appendChild(messageElement);
+                    chatLog.scrollTop = chatLog.scrollHeight;
+                } else {
+                    console.error('La risposta ricevuta non ha la struttura prevista:', data);
+                }
+            })
+             .catch(error => {
+                console.error('Errore nella richiesta:', error);
+            });
          })
     </script>
 </body>
